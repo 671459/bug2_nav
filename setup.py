@@ -27,10 +27,6 @@ setup(
         'console_scripts': [
             'wall_follower = bug2_navigation.wall_follower:main',
             'go_to_point = bug2_navigation.go_to_point:main',
-            'WFservice = bug2_navigation.wall_follower_service:main',
-            'GTPservice = bug2_navigation.go_to_point_service:main',
-            'WFclient = bug2_navigation.wall_follower_client:main',
-            'GTPclient = bug2_navigation.go_to_point_client:main',
             'bug2_controller = bug2_navigation.bug2_controller:main',
         ],
     },
