@@ -11,36 +11,36 @@ class Bug2Controller(Node):
     def __init__(self):
         super().__init__('Bug2_Controller')
 
-        # Goal position (set your goal here)
-        self.goal = Point(x=5.0, y=5.0, z=0.0)  # Set the goal coordinates
+        #Goal position (set goal here)
+        self.goal = Point(x=10.0, y=10.0, z=0.0)  # Set the goal coordinates
 
-        # Start position (initial robot position)
-        self.start = Point(x=0.0, y=0.0, z=0.0)  # Set your starting coordinates
+        #Start position (initial robot position)
+        self.start = Point(x=0.0, y=0.0, z=0.0)  #Starting coordinates
 
-        # Current position
+        #Current position
         self.position = Point()
         self.active_go_to_point = False
 
-        # Subscribers for position and laser scan
+        #Subscribers for position and laser scan
         self.create_subscription(Odometry, '/odom', self.odom_callback, 10)
         self.create_subscription(LaserScan, '/scan', self.laser_callback, 10)
 
-        # Create a client for the GoToPoint service
+        #Client for the GoToPoint service
         self.GTPcli = self.create_client(GoToPoint, 'go_to_point_service')
         while not self.GTPcli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('GoToPoint service not available, waiting again...')
         self.GTPreq = GoToPoint.Request()
 
-        # Create a client for the WallFollower service
+        #Client for the WallFollower service
         self.WFcli = self.create_client(SetBool, 'wall_follower_service')
         while not self.WFcli.wait_for_service(timeout_sec=1.0):
             self.get_logger().info('WallFollower service not available, waiting again...')
         self.WFreq = SetBool.Request()
 
-        # State: 0 for GoToPoint, 1 for WallFollower
+        #State: 0 for GoToPoint, 1 for WallFollower
         self.state = 0
 
-        # Threshold for m-line proximity and obstacle detection
+        #Threshold for m-line proximity and obstacle detection
         self.m_line_precision = 0.05  # How close to the m-line we need to be
         self.obstacle_threshold = 0.5  # Distance threshold to consider an obstacle
 
@@ -51,9 +51,9 @@ class Bug2Controller(Node):
 
     def laser_callback(self, msg):
         """Check for obstacles using LaserScan."""
-        front_distance = min(min(msg.ranges[0:10]), min(msg.ranges[350:359]))  # Front of the robot
+        front_distance = min(min(msg.ranges[0:10]), min(msg.ranges[350:359]))  #Front of the robot
         if front_distance < self.obstacle_threshold:
-            # Switch to WallFollower if an obstacle is detected
+            #Switch to WallFollower if an obstacle is detected
             self.call_wall_follower(True)
         else:
             self.call_wall_follower(False)
@@ -75,7 +75,7 @@ class Bug2Controller(Node):
         x_s, y_s = self.start.x, self.start.y
         x_g, y_g = self.goal.x, self.goal.y
 
-        # Formula for the perpendicular distance from point to line
+        #Formula for the perpendicular distance from point to line
         numerator = abs((y_g - y_s) * x_r - (x_g - x_s) * y_r + x_g * y_s - y_g * x_s)
         denominator = math.sqrt((y_g - y_s)**2 + (x_g - x_s)**2)
         distance = numerator / denominator
@@ -84,17 +84,17 @@ class Bug2Controller(Node):
 
     def call_go_to_point(self, x, y, z):
         """Call the GoToPoint service to move towards the goal."""
-        if self.state == 0:  # Already using GoToPoint, no need to call again
+        if self.state == 0:  #Already using GoToPoint, no need to call again
             return
 
-        self.GTPreq.target_position = Point(x=x, y=y, z=z)
+        self.GTPreq.target_position = Point(x, y, z)
         self.GTPreq.activate = True
         self.get_logger().info(f"Sending GoToPoint request to move to ({x}, {y}, {z})")
 
         future = self.GTPcli.call_async(self.GTPreq)
         future.add_done_callback(self.go_to_point_response_callback)
 
-        # Set state to GoToPoint
+        #Set state to GoToPoint
         self.state = 0
 
     def go_to_point_response_callback(self, future):
@@ -109,7 +109,7 @@ class Bug2Controller(Node):
 
     def call_wall_follower(self, activate):
         """Call the WallFollower service to avoid obstacles."""
-        if activate and self.state == 1:  # Already using WallFollower, no need to call again
+        if activate and self.state == 1:  #Already using WallFollower, no need to call again
             return
 
         self.WFreq.data = activate
@@ -118,7 +118,7 @@ class Bug2Controller(Node):
         future = self.WFcli.call_async(self.WFreq)
         future.add_done_callback(self.wall_follower_response_callback)
 
-        # Set state to WallFollower
+        #Set state to WallFollower
         if activate:
             self.state = 1
 
@@ -131,6 +131,7 @@ class Bug2Controller(Node):
                 self.get_logger().error("Wall follower service call failed.")
         except Exception as e:
             self.get_logger().error(f"Wall follower service call failed with error: {str(e)}")
+
 
 def main(args=None):
     rclpy.init(args=args)

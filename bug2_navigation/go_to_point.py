@@ -17,9 +17,6 @@ class GoToPointClass(Node):
         self.odom_sub = self.create_subscription(Odometry, '/odom', self.clbk_odom, 10)
         self.vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
 
-        self.srv = self.create_service(
-            GoToPoint, "go_to_point_service", self.service_callback
-        )
 
         self.position = Point()
         self.yaw = 0.0
@@ -31,6 +28,10 @@ class GoToPointClass(Node):
 
         timer_period = 0.1  # seconds
         self.timer = self.create_timer(timer_period, self.timer_callback)
+
+        self.srv = self.create_service(
+            GoToPoint, "go_to_point_service", self.service_callback
+        )
 
 
     #TODO: Create Callback Function for the Service Server that sets the self.active variable True or False AND changes the self.desired_position depending on the request message 
@@ -149,7 +150,6 @@ def main(args=None):
     rclpy.spin(controller)
     controller.destroy_node()
     rclpy.shutdown()
-
 
 if __name__ == '__main__':
     main()
